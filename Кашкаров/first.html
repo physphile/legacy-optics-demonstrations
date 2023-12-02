@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<body style="margin: 0px; padding: 0px;">
+    <canvas id="myCanvas" width="500" height="350" style="border:1px solid #939393; z-index:1">
+        Your browser does not support the canvas element.
+    </canvas>
+    <label id="velocity" style="position: absolute; top: 270px; left: 400px;">speed=21</label>
+    <button id="speedInc" onclick="ButtonPress()" ; style="position: absolute; top: 300px; left: 430px;">+</button>
+    <button id="speedDec" onclick="ButtonPress()" ; style="position: absolute; z-index:2; top: 300px; left: 400px;">-</button>
+    <button id="XInc" onclick="ButtonPress()" ; style="position: absolute; z-index:2; top: 90px; left: 310px;">+</button>
+    <button id="XDec" onclick="ButtonPress()" ; style="position: absolute; z-index:2; top: 120px; left: 310px;">-</button>
+    <button id="YInc" onclick="ButtonPress()" ; style="position: absolute; z-index:2; top: 20px; left: 105px;">+</button>
+    <button id="YDec" onclick="ButtonPress()" ; style="position: absolute; z-index:2; top: 20px; left: 75px;">-</button>
+    <button id="ZInc" onclick="ButtonPress()" ; style="position: absolute; z-index:2; top: 150px; left: 20px;">+</button>
+    <button id="ZDec" onclick="ButtonPress()" ; style="position: absolute; z-index:2; top: 180px; left: 50px;">-</button>
+    <button id="stopButton" onclick="ButtonPress()" ; style="position: absolute; z-index:2; top: 250px; left: 400px;">Pause</button>
+    <button id="stepButton" onclick="update()" ; style="position: absolute; z-index:2; top: 230px; left: 360px; visibility: hidden">Step</button>
+    <button id="startButton" onclick="ButtonPress()" ; style="position: absolute; z-index:2; top: 230px; left: 420px; visibility: hidden">Start</button>
+
+
+    <script>
+        var speedL = document.getElementById("velocity");
+        var stopButton = document.getElementById("stopButton");
+        var speedInc = document.getElementById("speedInc");
+        var speedDec = document.getElementById("speedDec");
+        var XInc = document.getElementById("XInc");
+        var XDec = document.getElementById("XDec");
+        var YInc = document.getElementById("YInc");
+        var YDec = document.getElementById("YDec");
+        var ZInc = document.getElementById("ZInc");
+        var ZDec = document.getElementById("ZDec");
+        var stepButton = document.getElementById("stepButton");
+        var startButton = document.getElementById("startButton");
+        var recX, recY, recZ, cosX, sinX, cosY, sinY, cosZ, sinZ, speed, stopSpeed;
+        var time, xOffset, yOffset, regX, regY;
+        var s, timerInt, intSpeed;
+        var scaleX = (window.innerWidth) / 500;
+        var scaleY = (window.innerHeight) / 350;
+        window.onresize = function () {
+            scaleX = (window.innerWidth) / 500;
+            scaleY = (window.innerHeight) / 350;
+            if (scaleY < scaleX) scaleX = scaleY;
+            canvas.width = 500 * scaleX;
+            canvas.height = 350 * scaleX;
+            stopButton.style.top = (250 * scaleX).toString() + 'px';
+            stopButton.style.left = (400 * scaleX).toString() + 'px';
+            speedL.style.top = (270 * scaleX).toString() + 'px';
+            speedL.style.left = (400 * scaleX).toString() + 'px';
+            speedInc.style.top = (300 * scaleX).toString() + 'px';
+            speedInc.style.left = (430 * scaleX).toString() + 'px';
+            speedDec.style.top = (300 * scaleX).toString() + 'px';
+            speedDec.style.left = (400 * scaleX).toString() + 'px';
+            XInc.style.top = (90 * scaleX).toString() + 'px';
+            XInc.style.left = (310 * scaleX).toString() + 'px';
+            XDec.style.top = (120 * scaleX).toString() + 'px';
+            XDec.style.left = (310 * scaleX).toString() + 'px';
+            YInc.style.top = (20 * scaleX).toString() + 'px';
+            YInc.style.left = (105 * scaleX).toString() + 'px';
+            YDec.style.top = (20 * scaleX).toString() + 'px';
+            YDec.style.left = (75 * scaleX).toString() + 'px';
+            ZInc.style.top = (150 * scaleX).toString() + 'px';
+            ZInc.style.left = (20 * scaleX).toString() + 'px';
+            ZDec.style.top = (180 * scaleX).toString() + 'px';
+            ZDec.style.left = (50 * scaleX).toString() + 'px';
+            stepButton.style.top = (230 * scaleX).toString() + 'px';
+            stepButton.style.left = (360 * scaleX).toString() + 'px';
+            startButton.style.top = (230 * scaleX).toString() + 'px';
+            startButton.style.left = (420 * scaleX).toString() + 'px';
+            update();
+        }
+        document.documentElement.style.overflow = 'hidden'; // firefox, chrome
+        document.body.scroll = "no"; // ie only
+        xOffset = 100;
+        yOffset = 120;
+        speed = 10;
+        intSpeed = 10;
+        recX = 3e-1;
+        cosX = Math.cos(recX);
+        sinX = Math.sin(recX);
+        recY = -3e-1;
+        cosY = Math.cos(recY);
+        sinY = Math.sin(recY);
+        recZ = 0;
+        cosZ = 1;
+        sinZ = 0;
+        time = 0;
+        var canvas = document.getElementById("myCanvas");
+        canvas.width = 500 * scaleX;
+        canvas.height = 350 * scaleX;
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#939393";
+        ctx.fillRect(0, 0, 500 * scaleX, 350 * scaleX);
+        ctx.fillStyle = "#000000";
+        ctx.font = "20px Arial";
+        drawGraph();
+        drawAxes();
+        window.onresize();
+
+        timerInt = setInterval(update, intSpeed);
+
+        function ButtonPress() {
+            switch (ButtonPress.caller.arguments[0].target.id) {
+            case 'stopButton':
+                clearInterval(timerInt);
+                startButton.style.visibility = 'visible';
+                stepButton.style.visibility = 'visible';
+                stopButton.style.visibility = 'hidden';
+                speedInc.style.visibility = 'hidden';
+                speedDec.style.visibility = 'hidden';
+
+
+                break;
+            case 'startButton':
+                timerInt = setInterval(update, intSpeed);
+                stopButton.style.visibility = 'visible';
+                startButton.style.visibility = 'hidden';
+                stepButton.style.visibility = 'hidden';
+                speedInc.style.visibility = 'visible';
+                speedDec.style.visibility = 'visible';
+                break;
+            case 'speedInc':
+                if (intSpeed > 1) intSpeed--;
+                speedL.innerHTML = "speed=" + (31 - intSpeed).toString();
+                clearInterval(timerInt);
+                timerInt = setInterval(update, intSpeed);
+                break;
+            case 'speedDec':
+                if (intSpeed < 30) intSpeed++;
+                speedL.innerHTML = "speed=" + (31 - intSpeed).toString();
+                clearInterval(timerInt);
+                timerInt = setInterval(update, intSpeed);
+                break;
+            case 'XInc':
+                if (recX > -1) {
+                    recX = recX - 1e-1;
+                    cosX = Math.cos(recX);
+                    sinX = Math.sin(recX);
+                    update();
+
+                }
+
+                break;
+            case 'XDec':
+                if (recX < 1) {
+                    recX = recX + 1e-1;
+                    cosX = Math.cos(recX);
+                    sinX = Math.sin(recX);
+                    update();
+                }
+                break;
+            case 'YInc':
+                if (recY < 2) {
+                    recY = recY + 1e-1;
+                    cosY = Math.cos(recY);
+                    sinY = Math.sin(recY);
+                    update();
+                }
+
+                break;
+            case 'YDec':
+                if (recY > -2) {
+                    recY = recY - 1e-1;
+                    cosY = Math.cos(recY);
+                    sinY = Math.sin(recY);
+                    update();
+                }
+
+                break;
+            case 'ZInc':
+                if (recZ < 1) {
+                    recZ = recZ + 1e-1;
+                    cosZ = Math.cos(recZ);
+                    sinZ = Math.sin(recZ);
+                    update();
+                }
+
+                break;
+            case 'ZDec':
+                if (recZ > -1) {
+                    recZ = recZ - 1e-1;
+                    cosZ = Math.cos(recZ);
+                    sinZ = Math.sin(recZ);
+                    update();
+                }
+
+                break;
+            }
+            // 
+        }
+
+        function update() {
+            ctx.fillStyle = "#9f9f9f";
+            ctx.fillRect(0, 0, 500 * scaleX, 350 * scaleX);
+            ctx.fillStyle = "#000000";
+            drawGraph();
+            drawAxes();
+        }
+
+        function drawLine(x, y, z, t) {
+            ctx.beginPath();
+            ctx.moveTo(x * scaleX, y * scaleX);
+            ctx.lineTo(z * scaleX, t * scaleX);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawOval(x, y, h, w) {
+            ctx.beginPath();
+            ctx.arc((x + w / 2) * scaleX, (y + h / 2) * scaleX, (w + h) / 4 * scaleX, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function fillOval(x, y, h, w) {
+            ctx.beginPath();
+            ctx.arc((x + w / 2) * scaleX, (y + h / 2) * scaleX, (w + h) / 4 * scaleX, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function setColor(Color) {
+            ctx.strokeStyle = Color;
+        }
+
+        function drawString(str, x, y) {
+            ctx.font = "20px Arial";
+            ctx.fillText(str, x * scaleX, y * scaleX);
+        }
+
+        function drawAxes() {
+
+            setColor("#000000");
+            drawMyLine(0, 0, 0, 200, 0, 0);
+            drawMyLine(0, 0, 0, 0, 100, 0);
+            drawMyLine(0, 0, 0, 0, 0, 100);
+            drawOval(350, 50, 140, 140);
+            drawLine(345, 120, 495, 120);
+            drawLine(420, 45, 420, 195);
+            drawLine(100, 220, 100, 340);
+            drawLine(100, 340, 300, 340);
+            setColor("#FF0000");
+            drawLine(180, 240, 180, 340);
+            drawMyLine(80, -70, 0, 80, 70, 0);
+            drawMyLine(80, 0, -70, 80, 0, 70);
+            setColor("#00FF00");
+            drawLine(40, 50, 40, 100);
+            drawString("E", 30, 55);
+            setColor("#fff800");
+            drawLine(40, 100, 10, 130);
+            drawString("H", 1, 130);
+            setColor("#000000");
+            drawLine(40, 100, 80, 100);
+            drawString("k", 75, 95);
+            setColor("#ffffff");
+            drawString("S", 90, 230);
+            drawString("<S>", 75, 307);
+            drawString("x", 340, 115);
+            drawString("z", 425, 45);
+            drawString("z", 45, 55);
+            drawString("x", 15, 130);
+            drawString("y", 75, 115);
+            drawString("0", 45, 115);
+            drawString("0", 96, 345);
+            drawString("y", 290, 345);
+
+        }
+
+        function drawMyLine(startX, startY, startZ, endX, endY, endZ) {
+            var realStartX, realStartY, realEndX, realEndY, realStartZ, realEndZ;
+            realStartX = startX;
+            realStartY = startY * cosX - startZ * sinX;
+            realStartZ = startY * sinX + startZ * cosX;
+            realEndX = endX;
+            realEndY = endY * cosX - endZ * sinX;
+            realEndZ = endY * sinX + endZ * cosX;
+            realStartX = realStartX * cosY + realStartZ * sinY;
+            realStartZ = -realStartZ * sinY + realStartZ * cosY;
+            realEndX = realEndX * cosY + realEndZ * sinY;
+            realEndZ = -realEndZ * sinY + realEndZ * cosY;
+            realStartX = realStartX * cosZ - realStartY * sinZ;
+            realStartY = realStartX * sinZ + realStartY * cosZ;
+            realEndX = realEndX * cosZ - realEndY * sinZ;
+            realEndY = realEndX * sinZ + realEndY * cosZ;
+            drawLine(realStartX + xOffset, -realStartY + yOffset, realEndX + xOffset, -realEndY + yOffset);
+            regX = realEndX + xOffset;
+            regY = -realEndY + yOffset;
+        }
+
+        function drawGraph() {
+            var firstX, firstY, secondX, secondY;
+            var minEn, maxEn, tmpEn;
+            time = time + speed;
+            if (time > 359) time = time - 360;
+            var oldY, newY;
+            oldY = 0;
+            minEn = 0;
+            maxEn = 0;
+            for (i = 1; i < 200; i = i + 1) {
+                newY = Math.cos((time - i * 4) / 180 * Math.PI);
+                setColor("#00FF00");
+                drawMyLine(i, 0, 0, i, newY * 60, 0);
+                firstX = regX;
+                firstY = regY;
+                setColor("#fffc00");
+                drawMyLine(i, 0, 0, i, 0, newY * 60);
+                secondX = regX;
+                secondY = regY;
+                tmpEn = newY * newY * 70;
+                if (i != 1) {
+                    setColor("#FF0000");
+                    drawLine(i + 99, 339 - (oldY * oldY * 70), i + 100, 339 - (tmpEn));
+                    if (tmpEn > maxEn) maxEn = tmpEn;
+                    else
+                    if (tmpEn < minEn) minEn = tmpEn;
+                } else {
+                    minEn = tmpEn;
+                    maxEn = tmpEn;
+                }
+                if (i == 80) {
+                    setColor("#FFFFFF");
+                    fillOval(i + 96, 336 - (newY * newY * 70), 8, 8);
+                    fillOval(firstX - 4, firstY - 4, 8, 8);
+                    fillOval(secondX - 4, secondY - 4, 8, 8);
+                }
+                oldY = newY;
+            }
+            setColor("#FFFFFF");
+            drawLine(100, 339 - Math.round((maxEn + minEn) / 2), 300, 339 - Math.round((maxEn + minEn) / 2));
+
+            newY = Math.cos((time - 80 * 4) / 180 * Math.PI);
+            setColor("#00FF00");
+            drawLine(419, 120, 419, 120 - (newY * 70));
+            drawLine(420, 120, 420, 120 - (newY * 70));
+            drawLine(421, 120, 421, 120 - (newY * 70));
+            setColor("#fffc00");
+            drawLine(420, 119, 420 - (newY * 70), 119);
+            drawLine(420, 120, 420 - (newY * 70), 120);
+            drawLine(420, 121, 420 - (newY * 70), 121);
+        }
+    </script>
+</body>
+
+</html>

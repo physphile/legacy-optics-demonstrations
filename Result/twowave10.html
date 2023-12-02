@@ -1,0 +1,36 @@
+<HTML>
+<HEAD>
+        <TITLE>Две волны</TITLE>
+</HEAD>
+<script>
+<!--
+function createOpis()
+{
+  w1 = window.open("twowaveopis.html","Two_Waves","scrollbars=auto, width=100, height=300");
+}
+
+var name = "TwoWave";
+function opis ()
+{
+  top.frames[1].location="twowaveopis.html"
+}
+
+//-->
+</script>
+
+
+<BODY onload="opis()">
+<!onload="createOpis()" onUnLoad="w1.close()">
+<p align="left">
+<applet code="TwoWave10" width=500 height=370 align="left">
+ </applet></p>
+
+<!--
+<form>
+<input type="button" value="Описание" onClick="w1 = window.open('twowaveopis.html','Two_Waves','scrollbars=auto, width=100, height=300')">
+</form>
+-->
+<p>
+<a href="TwoWave10.java">Исходник</a><br><a href="twowaveopis.html" target="javabottom"> Описание</a><hr><a href="first.html">Бегущая волна</a><br><a href="staywave10.html">Стоячая волна</a><br><a href="cristall.html">Кристалл</a></p>
+</BODY>
+</HTML>

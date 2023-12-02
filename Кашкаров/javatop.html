@@ -1,0 +1,53 @@
+<HTML>
+
+<HEAD>
+    <TITLE>Апплеты</TITLE>
+	<meta charset="utf-8">
+</HEAD>
+
+<BODY>
+
+    <button id="first" onclick="ButtonPress()">Бегущая волна </button>
+    <button id="stayWave" onclick="ButtonPress()">Стоячая волна</button>
+    <button id="TwoWave" onclick="ButtonPress()">Две волны</button>
+    <button id="Cristall" onclick="ButtonPress()">Кристалл</button>
+    <button id="opis" onclick="ButtonPress()" ; style="margin:40px">Описание</button>
+
+    <script>
+        var flag = true;
+
+        function ButtonPress() {
+            switch (ButtonPress.caller.arguments[0].target.id) {
+            case 'first':
+                top.document.getElementById("javamiddle").src = "first.html"
+                top.document.getElementById("javabottom").src = "firstopis.html"
+                break;
+            case 'stayWave':
+                top.document.getElementById("javamiddle").src = "stayWave.html"
+                top.document.getElementById("javabottom").src = "staywaveopis.html"
+                break;
+            case 'TwoWave':
+                top.document.getElementById("javamiddle").src = "TwoWave.html"
+                top.document.getElementById("javabottom").src = "twowaveopis.html"
+                break;
+            case 'Cristall':
+                top.document.getElementById("javamiddle").src = "Cristall.html"
+                top.document.getElementById("javabottom").src = "cristallopis.html"
+                break;
+            case 'opis':
+                if (flag) {
+                    flag = false;
+                    top.document.getElementById("fs").rows = '100,*';
+                } else {
+                    flag = true;
+                    top.document.getElementById("fs").rows = '100,*,150';
+                }
+                break;
+            }
+        }
+    </script>
+
+
+</BODY>
+
+</HTML>
